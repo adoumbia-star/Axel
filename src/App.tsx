@@ -79,16 +79,12 @@ const steps: { id: MissionStep; short: string; label: string }[] = [
 
 function Brand() {
   return (
-    <div className="brand" aria-label="SUD CONTRACTORS">
-      <svg viewBox="0 0 104 80" role="img">
-        <path d="M44 29C48 13 62 2 79 2h24v14H78c-11 0-20 6-24 16Z" fill="#F18313" />
-        <path d="M13 2h45L45 16H19c-8 0-12 6-12 14s5 14 13 14h32c15 0 24 9 24 24 0 4-1 7-2 10H59c2-3 3-6 3-10 0-7-4-11-12-11H19C7 57 0 47 0 31 0 14 6 2 13 2Z" fill="#2B62AC" />
-        <path d="M0 64h52c10 0 17-3 21-8 3 5 9 8 18 8h13v14H89c-8 0-14-2-20-6-5 4-11 6-18 6H0Z" fill="#2B62AC" />
-      </svg>
-      <div>
-        <strong>SUD CONTRACTORS</strong>
-        <span>Pro<i>Fuel</i></span>
+    <div className="brand">
+      <div className="brand-logo">
+        <img src="/logo-sud-contractors.png" alt="SUD CONTRACTORS" />
       </div>
+      <span className="brand-product">Pro<i>Fuel</i></span>
+      <small>Suivi carburant GESTOCI</small>
     </div>
   )
 }
@@ -461,6 +457,7 @@ export default function App() {
       <div className="main-shell">
         <header className="topbar">
           <button className="mobile-menu" onClick={() => setMobileOpen(true)}><Menu /></button>
+          <img className="topbar-logo" src="/logo-sud-contractors.png" alt="SUD CONTRACTORS" />
           <div><span className="top-eyebrow">Pro<i>Fuel</i></span><strong>{title}</strong></div>
           <div className="top-actions">
             <div className="prototype-switch"><span>MODE PROTOTYPE</span><label>Tester en tant que<select value={role} onChange={(e) => { setRole(e.target.value as Role); navigate('/') }}><option>Direction</option><option>Gérant station</option><option>Superviseur</option><option>Pompiste</option></select></label></div>
