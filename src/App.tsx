@@ -154,7 +154,7 @@ function Dashboard({ role, onOpenMission }: { role: Role; onOpenMission: () => v
         action={<button className="primary-btn" onClick={onOpenMission}>Voir la mission active <ArrowRight size={16} /></button>}
       />
       <section className="kpi-grid">
-        <KpiCard icon={Fuel} label="Stock réseau" value={direction ? '128 450 L' : '43 920 L'} detail={direction ? '3 stations actives' : '72 % de capacité'} />
+        <KpiCard icon={Fuel} label={direction ? 'Stock réseau' : 'Stock station'} value={direction ? '128 450 L' : '43 920 L'} detail={direction ? '3 stations actives' : '72 % de capacité'} />
         <KpiCard icon={Truck} label="Missions en cours" value="01" detail="TR-458 · vers Cocody" tone="blue" />
         <KpiCard icon={AlertTriangle} label="Alertes ouvertes" value="02" detail="1 alerte critique" tone="red" />
         <KpiCard icon={CircleGauge} label="Écart moyen" value="-0,27 %" detail="7 derniers jours" tone="green" />
