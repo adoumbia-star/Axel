@@ -1,5 +1,5 @@
-import { databaseError, getSql, json } from './_lib/db'
-import { parseJsonBody, type ApiRequest, type ApiResponse } from './_lib/http'
+import { databaseError, getSql, json } from './_lib/db.ts'
+import { parseJsonBody, type ApiRequest, type ApiResponse } from './_lib/http.ts'
 
 type PumpReadingInput = {
   stationCode?: string

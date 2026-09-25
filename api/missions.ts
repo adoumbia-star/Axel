@@ -1,5 +1,5 @@
-import { databaseError, getSql, json } from './_lib/db'
-import type { ApiRequest, ApiResponse } from './_lib/http'
+import { databaseError, getSql, json } from './_lib/db.ts'
+import type { ApiRequest, ApiResponse } from './_lib/http.ts'
 
 export default async function handler(request: ApiRequest, response: ApiResponse) {
   if (request.method !== 'GET') {

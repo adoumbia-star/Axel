@@ -1,5 +1,5 @@
 import { neon } from '@neondatabase/serverless'
-import type { ApiResponse } from './http'
+import type { ApiResponse } from './http.ts'
 
 export function getSql() {
   const databaseUrl = process.env.DATABASE_URL
