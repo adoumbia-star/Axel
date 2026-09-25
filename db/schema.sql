@@ -16,7 +16,7 @@ EXCEPTION
 END
 $$;
 
-CREATE TABLE stations (
+CREATE TABLE IF NOT EXISTS stations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   code text NOT NULL UNIQUE,
   name text NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE stations (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TABLE vehicles (
+CREATE TABLE IF NOT EXISTS vehicles (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   registration text NOT NULL UNIQUE,
   capacity_liters integer NOT NULL CHECK (capacity_liters > 0),
@@ -34,7 +34,7 @@ CREATE TABLE vehicles (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TABLE missions (
+CREATE TABLE IF NOT EXISTS missions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   reference text NOT NULL UNIQUE,
   loading_reference text,
@@ -52,7 +52,7 @@ CREATE TABLE missions (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TABLE mission_compartments (
+CREATE TABLE IF NOT EXISTS mission_compartments (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   mission_id uuid NOT NULL REFERENCES missions(id) ON DELETE CASCADE,
   compartment_number smallint NOT NULL CHECK (compartment_number > 0),
@@ -63,7 +63,7 @@ CREATE TABLE mission_compartments (
   UNIQUE (mission_id, compartment_number)
 );
 
-CREATE TABLE mission_events (
+CREATE TABLE IF NOT EXISTS mission_events (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   mission_id uuid NOT NULL REFERENCES missions(id) ON DELETE CASCADE,
   event_type text NOT NULL,
@@ -75,7 +75,7 @@ CREATE TABLE mission_events (
   details jsonb NOT NULL DEFAULT '{}'::jsonb
 );
 
-CREATE TABLE tanks (
+CREATE TABLE IF NOT EXISTS tanks (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   station_id uuid NOT NULL REFERENCES stations(id) ON DELETE CASCADE,
   code text NOT NULL,
@@ -86,7 +86,7 @@ CREATE TABLE tanks (
   UNIQUE (station_id, code)
 );
 
-CREATE TABLE pump_readings (
+CREATE TABLE IF NOT EXISTS pump_readings (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   station_id uuid NOT NULL REFERENCES stations(id) ON DELETE CASCADE,
   pump_code text NOT NULL,
@@ -97,9 +97,9 @@ CREATE TABLE pump_readings (
   recorded_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX mission_events_mission_at_idx ON mission_events (mission_id, event_at DESC);
-CREATE INDEX missions_station_scheduled_idx ON missions (destination_station_id, scheduled_at DESC);
-CREATE INDEX pump_readings_station_recorded_idx ON pump_readings (station_id, recorded_at DESC);
+CREATE INDEX IF NOT EXISTS mission_events_mission_at_idx ON mission_events (mission_id, event_at DESC);
+CREATE INDEX IF NOT EXISTS missions_station_scheduled_idx ON missions (destination_station_id, scheduled_at DESC);
+CREATE INDEX IF NOT EXISTS pump_readings_station_recorded_idx ON pump_readings (station_id, recorded_at DESC);
 
 CREATE OR REPLACE FUNCTION set_updated_at()
 RETURNS trigger AS $$
@@ -109,6 +109,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS missions_updated_at ON missions;
 CREATE TRIGGER missions_updated_at
 BEFORE UPDATE ON missions
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();

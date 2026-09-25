@@ -32,11 +32,12 @@ La chaîne de connexion n'est jamais incluse dans le bundle React.
 
 1. Dans le projet Vercel, ouvrir **Storage** → **Create Database** → **Neon**.
 2. Lier la base au projet et aux environnements Production, Preview et Development. L'intégration crée `DATABASE_URL`.
-3. Dans la console SQL Neon, exécuter dans l'ordre :
+3. Créer le schéma et les données de démonstration, soit depuis l'éditeur SQL Neon (`db/schema.sql` puis `db/seed.sql`), soit en local :
 
-```text
-db/schema.sql
-db/seed.sql
+```bash
+cp .env.example .env.local
+# coller DATABASE_URL dans .env.local
+npm run db:setup
 ```
 
 4. Redéployer le projet. Le badge de la barre supérieure passe de **Mode démo** à **Neon connecté**.
