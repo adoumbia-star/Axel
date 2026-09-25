@@ -1,4 +1,4 @@
-import { databaseError, getSql, json } from './_lib/db.js'
+import { databaseError, getSql, json } from './_lib/db'
 
 export default async function handler(request: Request) {
   if (request.method !== 'GET') {

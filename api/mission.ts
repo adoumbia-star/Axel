@@ -1,4 +1,4 @@
-import { databaseError, getSql, json } from './_lib/db.js'
+import { databaseError, getSql, json } from './_lib/db'
 
 const allowedStatuses = new Set(['draft', 'loaded', 'transit', 'arrived', 'completed'])
 
