@@ -1,4 +1,5 @@
 import { databaseError, getSql, json } from './_lib/db'
+import { parseJsonBody, type ApiRequest, type ApiResponse } from './_lib/http'
 
 const allowedStatuses = new Set(['draft', 'loaded', 'transit', 'arrived', 'completed'])
 
@@ -139,34 +140,35 @@ async function updateMission(reference: string, body: MissionUpdate) {
   return findMission(reference)
 }
 
-export default async function handler(request: Request) {
-  const reference = new URL(request.url).searchParams.get('reference')
+export default async function handler(request: ApiRequest, response: ApiResponse) {
+  const queryReference = request.query?.reference
+  const reference: string | null = (Array.isArray(queryReference) ? queryReference[0] : queryReference) ?? null
 
   if (!validReference(reference)) {
-    return json({ ok: false, message: 'Référence de mission invalide.' }, { status: 400 })
+    return json(response, 400, { ok: false, message: 'Référence de mission invalide.' })
   }
 
   try {
     if (request.method === 'GET') {
       const mission = await findMission(reference)
       return mission
-        ? json({ ok: true, mission })
-        : json({ ok: false, message: 'Mission introuvable.' }, { status: 404 })
+        ? json(response, 200, { ok: true, mission })
+        : json(response, 404, { ok: false, message: 'Mission introuvable.' })
     }
 
     if (request.method === 'PATCH') {
-      const body = await request.json() as MissionUpdate
+      const body = parseJsonBody<MissionUpdate>(request)
       const mission = await updateMission(reference, body)
       return mission
-        ? json({ ok: true, mission })
-        : json({ ok: false, message: 'Mission introuvable.' }, { status: 404 })
+        ? json(response, 200, { ok: true, mission })
+        : json(response, 404, { ok: false, message: 'Mission introuvable.' })
     }
 
-    return json({ ok: false, message: 'Méthode non autorisée.' }, { status: 405 })
+    return json(response, 405, { ok: false, message: 'Méthode non autorisée.' })
   } catch (error) {
     if (error instanceof Error && ['INVALID_STATUS', 'INVALID_VOLUMES'].includes(error.message)) {
-      return json({ ok: false, message: 'Données de mission invalides.' }, { status: 400 })
+      return json(response, 400, { ok: false, message: 'Données de mission invalides.' })
     }
-    return databaseError(error)
+    return databaseError(response, error)
   }
 }

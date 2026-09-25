@@ -1,8 +1,9 @@
 import { databaseError, getSql, json } from './_lib/db'
+import type { ApiRequest, ApiResponse } from './_lib/http'
 
-export default async function handler(request: Request) {
+export default async function handler(request: ApiRequest, response: ApiResponse) {
   if (request.method !== 'GET') {
-    return json({ ok: false, message: 'Méthode non autorisée.' }, { status: 405 })
+    return json(response, 405, { ok: false, message: 'Méthode non autorisée.' })
   }
 
   try {
@@ -27,8 +28,8 @@ export default async function handler(request: Request) {
       LIMIT 50
     `
 
-    return json({ ok: true, missions })
+    return json(response, 200, { ok: true, missions })
   } catch (error) {
-    return databaseError(error)
+    return databaseError(response, error)
   }
 }

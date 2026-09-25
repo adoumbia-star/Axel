@@ -1,4 +1,5 @@
 import { databaseError, getSql, json } from './_lib/db'
+import { parseJsonBody, type ApiRequest, type ApiResponse } from './_lib/http'
 
 type PumpReadingInput = {
   stationCode?: string
@@ -9,13 +10,13 @@ type PumpReadingInput = {
   actorName?: string
 }
 
-export default async function handler(request: Request) {
+export default async function handler(request: ApiRequest, response: ApiResponse) {
   if (request.method !== 'POST') {
-    return json({ ok: false, message: 'Méthode non autorisée.' }, { status: 405 })
+    return json(response, 405, { ok: false, message: 'Méthode non autorisée.' })
   }
 
   try {
-    const body = await request.json() as PumpReadingInput
+    const body = parseJsonBody<PumpReadingInput>(request)
     const stationCode = body.stationCode?.trim()
     const pumpCode = body.pumpCode?.trim()
     const product = body.product?.trim()
@@ -30,7 +31,7 @@ export default async function handler(request: Request) {
       !Number.isFinite(body.indexLiters) ||
       Number(body.indexLiters) < 0
     ) {
-      return json({ ok: false, message: 'Relevé de pompe invalide.' }, { status: 400 })
+      return json(response, 400, { ok: false, message: 'Relevé de pompe invalide.' })
     }
 
     const sql = getSql()
@@ -61,9 +62,9 @@ export default async function handler(request: Request) {
     `
 
     return readings.length
-      ? json({ ok: true, reading: readings[0] }, { status: 201 })
-      : json({ ok: false, message: 'Station introuvable.' }, { status: 404 })
+      ? json(response, 201, { ok: true, reading: readings[0] })
+      : json(response, 404, { ok: false, message: 'Station introuvable.' })
   } catch (error) {
-    return databaseError(error)
+    return databaseError(response, error)
   }
 }
