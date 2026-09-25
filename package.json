@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/adoumbia-star/Axel#readme",
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
     "lucide-react": "^1.48.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",

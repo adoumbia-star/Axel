@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   AlertTriangle,
   ArrowLeft,
@@ -31,6 +31,7 @@ import {
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 
 import logoUrl from './assets/logo-sud-contractors.png'
+import { checkDatabase, loadMission, saveMission, savePumpReading, type DatabaseStatus } from './lib/api'
 
 type Role = 'Direction' | 'Gérant station' | 'Superviseur' | 'Pompiste'
 type MissionStep = 'draft' | 'loaded' | 'transit' | 'arrived' | 'completed'
@@ -78,6 +79,10 @@ const steps: { id: MissionStep; short: string; label: string }[] = [
   { id: 'arrived', short: '04', label: 'Réception' },
   { id: 'completed', short: '05', label: 'Rapprochement' },
 ]
+
+function allowedMissionStep(value: unknown): value is MissionStep {
+  return typeof value === 'string' && steps.some((step) => step.id === value)
+}
 
 function Brand() {
   return (
@@ -258,7 +263,27 @@ function MissionDetail({ step, setStep }: { step: MissionStep; setStep: (step: M
   const [arrivalValues, setArrivalValues] = useState(initialCompartments.map((c) => c.measured))
   const totalArrival = arrivalValues.reduce((a, b) => a + b, 0)
   const gap = totalArrival - 45000
-  const next = () => setStep(steps[Math.min(current + 1, steps.length - 1)].id)
+  useEffect(() => {
+    loadMission('MS-2026-0918')
+      .then((mission) => {
+        if (allowedMissionStep(mission.status)) setStep(mission.status)
+        const received = mission.compartments?.map((compartment: { receivedVolumeLiters: number | null }) => compartment.receivedVolumeLiters)
+        if (received?.length === initialCompartments.length && received.every(Number.isInteger)) {
+          setArrivalValues(received)
+        }
+      })
+      .catch(() => undefined)
+  }, [setStep])
+
+  const next = () => {
+    const nextStep = steps[Math.min(current + 1, steps.length - 1)].id
+    setStep(nextStep)
+    saveMission('MS-2026-0918', {
+      status: nextStep,
+      receivedVolumes: nextStep === 'completed' ? arrivalValues : undefined,
+      actorName: 'Awa Diarra',
+    }).catch(() => undefined)
+  }
   return (
     <>
       <button className="back-btn" onClick={() => navigate('/missions')}><ArrowLeft size={16} /> Retour aux missions</button>
@@ -405,11 +430,51 @@ function Stations() {
 
 function Pumps() {
   const [saved, setSaved] = useState<string[]>([])
-  const pumps = [{ id: 'P01', product: 'Gasoil', last: '128 430,2', suggested: '128 592,7' }, { id: 'P02', product: 'Super', last: '89 214,8', suggested: '89 341,5' }]
+  const [indexes, setIndexes] = useState<Record<string, string>>({ P01: '128592.7', P02: '89341.5' })
+  const pumps = [
+    { id: 'P01', product: 'Gasoil', last: '128 430,2' },
+    { id: 'P02', product: 'Super', last: '89 214,8' },
+  ]
+
+  const recordReading = (pump: typeof pumps[number]) => {
+    if (saved.includes(pump.id)) return
+    setSaved((current) => [...current, pump.id])
+    savePumpReading({
+      pumpCode: pump.id,
+      product: pump.product,
+      indexLiters: Number(indexes[pump.id]),
+      readingType: 'opening',
+    }).catch(() => undefined)
+  }
+
   return (
     <>
       <PageHeader eyebrow="Vacation du matin" title={<>INDEX DES <em>POMPES</em></>} description="Relevez les totalisateurs à l’ouverture et à la clôture de la vacation." />
-      <section className="pump-grid">{pumps.map((pump) => <article className={`pump-card ${saved.includes(pump.id) ? 'saved' : ''}`} key={pump.id}><div className="pump-card-head"><div className="pump-icon"><Fuel /></div><div><span className="eyebrow">{pump.id}</span><h2>{pump.product}</h2></div>{saved.includes(pump.id) ? <StatusBadge tone="success">Enregistré</StatusBadge> : <StatusBadge tone="warning">À relever</StatusBadge>}</div><div className="previous-index"><span>Dernier index de clôture</span><strong>{pump.last} L</strong><small>Hier · 22:03 · par Mariam Koné</small></div><label>Index d’ouverture<input defaultValue={pump.suggested} inputMode="decimal" /><span className="input-unit">litres</span></label><label className="photo-field"><Upload size={18} /><span>Ajouter une photo du totalisateur</span></label><button className={saved.includes(pump.id) ? 'saved-btn' : 'primary-btn full'} onClick={() => setSaved([...saved, pump.id])}>{saved.includes(pump.id) ? <><CheckCircle2 /> Index enregistré</> : <>Enregistrer l’index <ArrowRight size={16} /></>}</button></article>)}</section>
+      <section className="pump-grid">
+        {pumps.map((pump) => (
+          <article className={`pump-card ${saved.includes(pump.id) ? 'saved' : ''}`} key={pump.id}>
+            <div className="pump-card-head">
+              <div className="pump-icon"><Fuel /></div>
+              <div><span className="eyebrow">{pump.id}</span><h2>{pump.product}</h2></div>
+              {saved.includes(pump.id) ? <StatusBadge tone="success">Enregistré</StatusBadge> : <StatusBadge tone="warning">À relever</StatusBadge>}
+            </div>
+            <div className="previous-index"><span>Dernier index de clôture</span><strong>{pump.last} L</strong><small>Hier · 22:03 · par Mariam Koné</small></div>
+            <label>
+              Index d’ouverture
+              <input
+                value={indexes[pump.id]}
+                inputMode="decimal"
+                onChange={(event) => setIndexes((current) => ({ ...current, [pump.id]: event.target.value }))}
+              />
+              <span className="input-unit">litres</span>
+            </label>
+            <label className="photo-field"><Upload size={18} /><span>Ajouter une photo du totalisateur</span></label>
+            <button className={saved.includes(pump.id) ? 'saved-btn' : 'primary-btn full'} onClick={() => recordReading(pump)}>
+              {saved.includes(pump.id) ? <><CheckCircle2 /> Index enregistré</> : <>Enregistrer l’index <ArrowRight size={16} /></>}
+            </button>
+          </article>
+        ))}
+      </section>
       {saved.length === 2 && <div className="success-toast"><CheckCircle2 /><div><strong>Ouverture terminée</strong><span>Les deux index ont été enregistrés à votre nom.</span></div></div>}
     </>
   )
@@ -441,12 +506,18 @@ export default function App() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [modal, setModal] = useState(false)
   const [missionStep, setMissionStep] = useState<MissionStep>('transit')
+  const [databaseStatus, setDatabaseStatus] = useState<DatabaseStatus>('checking')
   const location = useLocation()
   const navigate = useNavigate()
   const menus = roleMenus[role]
   const title = useMemo(() => menus.find((m) => m.path === location.pathname)?.label ?? (location.pathname.includes('/missions/') ? 'Détail mission' : 'ProFuel'), [location.pathname, menus])
   const openMission = () => navigate('/missions/MS-2026-0918')
   const createMission = () => { setModal(false); setMissionStep('draft'); openMission() }
+
+  useEffect(() => {
+    checkDatabase().then(setDatabaseStatus)
+  }, [])
+
   return (
     <div className="app-shell">
       <aside className={`sidebar ${mobileOpen ? 'open' : ''}`}>
@@ -462,6 +533,10 @@ export default function App() {
           <img className="topbar-logo" src={logoUrl} alt="SUD CONTRACTORS" />
           <div><span className="top-eyebrow">Pro<i>Fuel</i></span><strong>{title}</strong></div>
           <div className="top-actions">
+            <span className={`database-pill ${databaseStatus}`}>
+              <Database size={13} />
+              {databaseStatus === 'connected' ? 'Neon connecté' : databaseStatus === 'checking' ? 'Connexion…' : 'Mode démo'}
+            </span>
             <div className="prototype-switch"><span>MODE PROTOTYPE</span><label>Tester en tant que<select value={role} onChange={(e) => { setRole(e.target.value as Role); navigate('/') }}><option>Direction</option><option>Gérant station</option><option>Superviseur</option><option>Pompiste</option></select></label></div>
             <button className="notification"><Bell /><span>2</span></button>
             <div className="avatar">AD</div><div className="user-meta"><strong>Awa Diarra</strong><span>{role}</span></div>
