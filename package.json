@@ -1,0 +1,38 @@
+{
+  "name": "sud-contractors-profuel-mockup",
+  "version": "1.0.0",
+  "description": "Mockup interactif du workflow de suivi carburant",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adoumbia-star/Axel.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/adoumbia-star/Axel/issues"
+  },
+  "homepage": "https://github.com/adoumbia-star/Axel#readme",
+  "dependencies": {
+    "lucide-react": "^1.48.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-router-dom": "^7.18.4"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^10.11.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1"
+  }
+}
