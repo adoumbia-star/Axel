@@ -30,6 +30,8 @@ import {
 } from 'lucide-react'
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 
+import logoUrl from './assets/logo-sud-contractors.png'
+
 type Role = 'Direction' | 'Gérant station' | 'Superviseur' | 'Pompiste'
 type MissionStep = 'draft' | 'loaded' | 'transit' | 'arrived' | 'completed'
 
@@ -81,7 +83,7 @@ function Brand() {
   return (
     <div className="brand">
       <div className="brand-logo">
-        <img src="/logo-sud-contractors.png" alt="SUD CONTRACTORS" />
+        <img src={logoUrl} alt="SUD CONTRACTORS" />
       </div>
       <span className="brand-product">Pro<i>Fuel</i></span>
       <small>Suivi carburant GESTOCI</small>
@@ -457,7 +459,7 @@ export default function App() {
       <div className="main-shell">
         <header className="topbar">
           <button className="mobile-menu" onClick={() => setMobileOpen(true)}><Menu /></button>
-          <img className="topbar-logo" src="/logo-sud-contractors.png" alt="SUD CONTRACTORS" />
+          <img className="topbar-logo" src={logoUrl} alt="SUD CONTRACTORS" />
           <div><span className="top-eyebrow">Pro<i>Fuel</i></span><strong>{title}</strong></div>
           <div className="top-actions">
             <div className="prototype-switch"><span>MODE PROTOTYPE</span><label>Tester en tant que<select value={role} onChange={(e) => { setRole(e.target.value as Role); navigate('/') }}><option>Direction</option><option>Gérant station</option><option>Superviseur</option><option>Pompiste</option></select></label></div>
