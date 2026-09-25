@@ -10,6 +10,7 @@
     "build:single": "tsc -b && SINGLEFILE=1 vite build --outDir dist-single",
     "preview": "vite preview --host 0.0.0.0",
     "db:setup": "node scripts/setup-db.mjs",
+    "test:live": "node scripts/test-live.mjs",
     "test": "npm run build"
   },
   "repository": {
@@ -36,6 +37,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
     "eslint": "^10.11.0",
+    "puppeteer-core": "^25.12.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.1",
     "vite-plugin-singlefile": "^2.3.3"
